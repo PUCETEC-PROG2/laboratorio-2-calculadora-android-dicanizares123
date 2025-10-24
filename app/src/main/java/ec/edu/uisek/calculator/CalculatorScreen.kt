@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalTextStyle
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ec.edu.uisek.calculator.ui.theme.Purple40
 import ec.edu.uisek.calculator.ui.theme.Purple80
+import ec.edu.uisek.calculator.ui.theme.Red
 import ec.edu.uisek.calculator.ui.theme.UiSekBlue
 
 @Composable
@@ -95,6 +97,12 @@ fun CalculatorGrid(onButtonClick: (String) -> Unit) {
                 onButtonClick(label)
             }
         }
+        items(span = {GridItemSpan( 2)}){
+            CalculatorButton(label = "AC") {
+
+            }
+        }
+
     }
 }
 
@@ -106,10 +114,12 @@ fun CalculatorButton(label: String, onClick: () -> Unit) {
             .aspectRatio(1f)
             .fillMaxSize()
             .clip(CircleShape)
-            .background(if (label in listOf("÷", "×", "−", "+", "=", "."))
-                Purple40
-                else
-                UiSekBlue
+            .background(
+                when (label) {
+                    in listOf("÷", "×", "−", "+", "=", ".") -> Purple40
+                    in listOf("AC", "C") -> Red
+                    else -> UiSekBlue
+                }
             )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
