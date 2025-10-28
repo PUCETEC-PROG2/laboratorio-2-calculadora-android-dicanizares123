@@ -32,14 +32,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ec.edu.uisek.calculator.ui.theme.Purple40
 import ec.edu.uisek.calculator.ui.theme.Purple80
 import ec.edu.uisek.calculator.ui.theme.Red
 import ec.edu.uisek.calculator.ui.theme.UiSekBlue
 
 @Composable
-fun CalculatorScreen() {
-    var inputText by remember { mutableStateOf("") }
+fun CalculatorScreen(
+    viewModel: CalculatorViewModel = viewModel()
+) {
+    val state = viewModel.state
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -47,36 +50,25 @@ fun CalculatorScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        TextField(
-            value = inputText,
-            onValueChange = { inputText = it },
+        Text(
+            text = state.display,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            textStyle = LocalTextStyle.current.copy(
-                fontSize = 36.sp,
-                textAlign = TextAlign.End,
-                color = Color.White
-            ),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = Color.White
-            ),
-            singleLine = true
+                .padding(16.dp),
+            textAlign = TextAlign.End,
+            fontSize = 56.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            maxLines =  1
         )
 
         // Aquí colocaremos la cuadrícula de botones
-        CalculatorGrid { label ->
-            inputText += label
-        }
+        CalculatorGrid ( onEvent = viewModel :: onEvent)
     }
 }
 
 @Composable
-fun CalculatorGrid(onButtonClick: (String) -> Unit) {
+fun CalculatorGrid(onEvent: (CalculatorEvent) -> Unit) {
     val buttons = listOf(
         "7", "8", "9", "÷",
         "4", "5", "6", "×",
@@ -94,15 +86,25 @@ fun CalculatorGrid(onButtonClick: (String) -> Unit) {
         items(buttons.size) { index ->
             val label = buttons[index]
             CalculatorButton(label = label) {
-                onButtonClick(label)
+                when(label) {
+                    in "0" .. "9" -> onEvent(CalculatorEvent.Number(label))
+                    "." -> onEvent(CalculatorEvent.Decimal)
+                    "=" -> onEvent(CalculatorEvent.Calculate)
+                    else -> onEvent(CalculatorEvent.Operator(label))
+                }
             }
         }
-        items(span = {GridItemSpan( 2)}){
+        item (span = { GridItemSpan(currentLineSpan = 2) } ){
             CalculatorButton(label = "AC") {
-
+                onEvent(CalculatorEvent.AllClear)
             }
         }
-
+        item {}
+        item {
+            CalculatorButton(label = "C") {
+                onEvent(CalculatorEvent.Clear)
+            }
+        }
     }
 }
 
@@ -111,7 +113,7 @@ fun CalculatorGrid(onButtonClick: (String) -> Unit) {
 fun CalculatorButton(label: String, onClick: () -> Unit) {
     Box (
         modifier = Modifier
-            .aspectRatio(1f)
+            .aspectRatio(if (label == "AC") 2f else 1f)
             .fillMaxSize()
             .clip(CircleShape)
             .background(
