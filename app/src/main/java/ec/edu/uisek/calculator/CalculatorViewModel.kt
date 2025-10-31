@@ -50,6 +50,10 @@ class CalculatorViewModel : ViewModel(){
     }
 
     private fun enterOperator(operator: String) {
+        if (number1.isNotBlank() && this.operator !=null) {
+            performCalculation()
+        }
+        
         if (number1.isNotBlank()) {
             this.operator = operator
         }
